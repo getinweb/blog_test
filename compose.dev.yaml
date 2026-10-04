@@ -19,6 +19,23 @@ services:
       - ./app/public:/var/www/app/public:ro
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
 
+  sass:
+    build:
+      context: .
+      dockerfile: docker/sass/Dockerfile
+    user: '${LOCAL_UID:-1000}:${LOCAL_GID:-1000}'
+    working_dir: /var/www/app
+    volumes:
+      - ./app:/var/www/app
+    command:
+      - --watch
+      - --poll
+      - --style=expanded
+      - --embed-source-map
+      - --embed-sources
+      - --no-error-css
+      - assets/scss:public/assets/css
+
   php-test:
     image: ${COMPOSE_PROJECT_NAME:-blog_test}-php:dev
     profiles: [test]
