@@ -1,0 +1,21 @@
+# Repository metadata and local tooling
+.git
+.idea
+.vscode
+.agents
+.codex
+.claude
+.aws
+**/.DS_Store
+
+# Local environment and credentials
+**/.env
+**/.env.*
+
+# Dependencies and generated files are prepared inside containers
+app/vendor
+app/var
+app/public/assets/css
+app/.php-cs-fixer.cache
+app/.phpunit.cache
+app/.phpunit.result.cache

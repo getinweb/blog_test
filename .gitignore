@@ -1,0 +1,29 @@
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+
+# Local tooling
+/.idea/
+/.vscode/
+/.agents/
+/.codex/
+/.claude/
+/.aws/
+.DS_Store
+
+# Composer dependencies
+/app/vendor/
+
+# Runtime data; preserve directory placeholders
+/app/var/**/*
+!/app/var/**/
+!/app/var/**/.gitkeep
+
+# Compiled styles
+/app/public/assets/css/
+
+# Tool caches
+/app/.php-cs-fixer.cache
+/app/.phpunit.cache/
+/app/.phpunit.result.cache
