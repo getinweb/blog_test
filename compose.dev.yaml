@@ -1,0 +1,19 @@
+services:
+  php:
+    build:
+      target: dev
+      args:
+        APP_UID: ${LOCAL_UID:-1000}
+        APP_GID: ${LOCAL_GID:-1000}
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      APP_DEBUG: ${APP_DEBUG:-1}
+    volumes:
+      - ./app:/var/www/app
+
+  nginx:
+    ports:
+      - '127.0.0.1:${HTTP_PORT:-8080}:80'
+    volumes:
+      - ./app/public:/var/www/app/public:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro

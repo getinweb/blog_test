@@ -1,0 +1,4 @@
+# Reserved for a future production deployment; this is not a runnable prod setup.
+# Production will use packaged application/assets, external secrets and no source bind mounts.
+# The Makefile deliberately uses compose.dev.yaml only.
+services: {}
