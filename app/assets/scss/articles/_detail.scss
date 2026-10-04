@@ -1,0 +1,58 @@
+@use '../common/tokens' as t;
+
+.article-detail {
+  max-width: 54rem;
+  margin-inline: auto;
+
+  &__header {
+    margin-bottom: 2rem;
+  }
+
+  &__categories {
+    margin-bottom: 1.5rem;
+
+    ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.25rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+  }
+
+  &__description {
+    margin-top: 1.5rem;
+    color: t.$muted;
+    font-size: 1.25rem;
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    margin-top: 1.5rem;
+    color: t.$muted;
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__image {
+    width: 100%;
+    border-radius: 0.5rem;
+    background: t.$surface;
+  }
+
+  &__text {
+    margin-top: 2rem;
+    font-size: 1.125rem;
+    line-height: 1.8;
+    white-space: pre-wrap;
+  }
+
+  &__footer {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid t.$line;
+  }
+}

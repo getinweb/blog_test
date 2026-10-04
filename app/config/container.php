@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Article\ArticleViewCounterInterface;
+use App\Article\SessionArticleViewCounter;
 use App\Config\AppConfig;
 use App\Config\ConfigLoader;
 use App\Config\DatabaseConfig;
 use App\Container\Container;
 use App\Container\ContainerInterface;
+use App\Controller\ArticleController;
 use App\Controller\CategoryController;
 use App\Controller\HomeController;
 use App\Database\BlogSeeder;
@@ -45,6 +48,8 @@ return static function (array $environment): ContainerInterface {
             new PdoCategoryRepository($container->get(PDO::class)),
         ArticleRepositoryInterface::class => static fn (ContainerInterface $container): PdoArticleRepository =>
             new PdoArticleRepository($container->get(PDO::class)),
+        ArticleViewCounterInterface::class => static fn (ContainerInterface $container): SessionArticleViewCounter =>
+            new SessionArticleViewCounter($container->get(ArticleRepositoryInterface::class)),
         ImageStorageInterface::class => static function (ContainerInterface $container): LocalImageStorage {
             $config = $container->get(AppConfig::class);
             $directory = dirname(__DIR__) . '/var/images' . ($config->environment === 'test' ? '/test' : '');
@@ -82,10 +87,16 @@ return static function (array $environment): ContainerInterface {
             $container->get(ArticleRepositoryInterface::class),
             $container->get(AppConfig::class)->articlesPerPage,
         ),
+        ArticleController::class => static fn (ContainerInterface $container): ArticleController => new ArticleController(
+            $container->get(TemplateRendererInterface::class),
+            $container->get(ArticleRepositoryInterface::class),
+            $container->get(ArticleViewCounterInterface::class),
+        ),
         Router::class => static fn (ContainerInterface $container): Router => new Router(
             [
                 '/' => $container->get(HomeController::class),
                 '/category' => $container->get(CategoryController::class),
+                '/article' => $container->get(ArticleController::class),
             ],
             $container->get(TemplateRendererInterface::class),
         ),
