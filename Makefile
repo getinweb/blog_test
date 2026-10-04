@@ -22,6 +22,7 @@ PINNED_IMAGES ?= \
 .PHONY: css-dev css-watch css-build css-check
 .PHONY: app-config-check
 .PHONY: migrate migrate-status migrate-test
+.PHONY: seed seed-test
 
 help:
 	@printf '%s\n' \
@@ -33,6 +34,8 @@ help:
 		'  make migrate         Apply pending migrations to the dev database.' \
 		'  make migrate-status  Show dev migration status without changing the schema.' \
 		'  make migrate-test    Apply migrations to the isolated test database.' \
+		'  make seed            Migrate and seed an empty dev database with demo data.' \
+		'  make seed-test       Migrate and seed the isolated test database.' \
 		'  make build    Build dev images using the pinned base images.' \
 		'  make up       Start dev services and the SCSS watcher.' \
 		'  make down     Stop dev and test containers; preserve dev database data.' \
@@ -69,6 +72,7 @@ install lint cs-check cs-fix analyse test test-unit test-integration test-functi
 css-dev css-watch css-build css-check: env
 app-config-check: env
 migrate migrate-status migrate-test: env
+seed seed-test: env
 
 config:
 	$(COMPOSE) config --quiet
@@ -84,6 +88,12 @@ migrate-status:
 
 migrate-test:
 	$(TEST_RUN) php bin/migrate.php up
+
+seed: migrate
+	$(COMPOSE) run --rm -T php php bin/seed.php
+
+seed-test: migrate-test
+	$(TEST_RUN) php bin/seed.php
 
 build:
 	$(COMPOSE) build --pull

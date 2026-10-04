@@ -8,13 +8,17 @@ use App\Config\DatabaseConfig;
 use App\Container\Container;
 use App\Container\ContainerInterface;
 use App\Controller\HomeController;
+use App\Database\BlogSeeder;
 use App\Database\ConnectionFactoryInterface;
 use App\Database\MigrationRunner;
 use App\Database\MigrationRunnerInterface;
 use App\Database\PdoConnectionFactory;
+use App\Database\SeederInterface;
 use App\Http\HttpKernel;
 use App\Http\RequestHandlerInterface;
 use App\Http\Router;
+use App\Image\ImageStorageInterface;
+use App\Image\LocalImageStorage;
 use App\Repository\ArticleRepositoryInterface;
 use App\Repository\CategoryRepositoryInterface;
 use App\Repository\PdoArticleRepository;
@@ -40,6 +44,17 @@ return static function (array $environment): ContainerInterface {
             new PdoCategoryRepository($container->get(PDO::class)),
         ArticleRepositoryInterface::class => static fn (ContainerInterface $container): PdoArticleRepository =>
             new PdoArticleRepository($container->get(PDO::class)),
+        ImageStorageInterface::class => static function (ContainerInterface $container): LocalImageStorage {
+            $config = $container->get(AppConfig::class);
+            $directory = dirname(__DIR__) . '/var/images' . ($config->environment === 'test' ? '/test' : '');
+
+            return new LocalImageStorage($directory, $config->imageMaxBytes);
+        },
+        SeederInterface::class => static fn (ContainerInterface $container): BlogSeeder => new BlogSeeder(
+            $container->get(PDO::class),
+            $container->get(ImageStorageInterface::class),
+            dirname(__DIR__) . '/db/seeds/blog.php',
+        ),
         Smarty::class => static function (ContainerInterface $container): Smarty {
             $config = $container->get(AppConfig::class);
             $cacheDirectory = dirname(__DIR__) . '/var/cache/smarty/' . $config->environment;
