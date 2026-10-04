@@ -20,6 +20,7 @@ PINNED_IMAGES ?= \
 .PHONY: help env config build up down restart logs shell ps pin-images
 .PHONY: install lint cs-check cs-fix analyse test test-unit test-integration test-functional check
 .PHONY: css-dev css-watch css-build css-check
+.PHONY: app-config-check
 
 help:
 	@printf '%s\n' \
@@ -27,6 +28,7 @@ help:
 		'  make help     Show available commands.' \
 		'  make env      Create .env without overwriting an existing file.' \
 		'  make config   Validate the dev Compose configuration.' \
+		'  make app-config-check  Validate application settings without connecting to MySQL.' \
 		'  make build    Build dev images using the pinned base images.' \
 		'  make up       Start dev services and the SCSS watcher.' \
 		'  make down     Stop dev and test containers; preserve dev database data.' \
@@ -44,7 +46,7 @@ help:
 		'  make test-unit         Run unit tests without starting MySQL.' \
 		'  make test-integration  Run integration tests.' \
 		'  make test-functional   Run functional tests.' \
-		'  make check    Validate Composer, PHP syntax/style/types/tests and SCSS.' \
+		'  make check    Validate app settings, Composer, PHP syntax/style/types/tests and SCSS.' \
 		'  make css-dev   Compile dev CSS with embedded source maps.' \
 		'  make css-watch Start the SCSS watcher in the background.' \
 		'  make css-build Build compressed CSS in app/var/build/assets/css.' \
@@ -61,9 +63,13 @@ env: .env.example
 config build up down restart logs shell ps: env
 install lint cs-check cs-fix analyse test test-unit test-integration test-functional check: env
 css-dev css-watch css-build css-check: env
+app-config-check: env
 
 config:
 	$(COMPOSE) config --quiet
+
+app-config-check:
+	$(PHP_RUN) php bin/check-config.php
 
 build:
 	$(COMPOSE) build --pull
@@ -113,7 +119,7 @@ test-integration:
 test-functional:
 	$(TEST_RUN) composer test:functional
 
-check: css-check
+check: app-config-check css-check
 	$(TEST_RUN) composer check
 
 css-dev:
