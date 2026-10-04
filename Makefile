@@ -1,18 +1,22 @@
 .DEFAULT_GOAL := help
 
 COMPOSE := docker compose -f compose.yaml -f compose.dev.yaml
+PHP_RUN := $(COMPOSE) run --rm --no-deps -T php
+TEST_RUN := $(COMPOSE) --profile test run --rm -T php-test
 LOCAL_UID ?= $(shell id -u)
 LOCAL_GID ?= $(shell id -g)
 export LOCAL_UID LOCAL_GID
 
 # To update images, change the tags here, run make pin-images, then copy the
-# printed references into the matching Dockerfiles and compose.yaml.
+# printed references into the matching Dockerfiles and Compose files.
 PINNED_IMAGES ?= \
 	php:8.5.11-fpm-bookworm \
 	nginx:1.30.5-alpine \
-	mysql:8.4.11
+	mysql:8.4.11 \
+	composer:2.10.3
 
 .PHONY: help env config build up down restart logs shell ps pin-images
+.PHONY: install lint cs-check cs-fix analyse test test-unit test-integration test-functional check
 
 help:
 	@printf '%s\n' \
@@ -22,12 +26,22 @@ help:
 		'  make config   Validate the dev Compose configuration.' \
 		'  make build    Build dev images using the pinned base images.' \
 		'  make up       Start the dev environment and wait for healthy services.' \
-		'  make down     Stop the dev environment without deleting database data.' \
+		'  make down     Stop dev and test containers; preserve dev database data.' \
 		'  make restart  Restart the dev containers.' \
 		'  make logs     Follow the last 100 log lines from dev containers.' \
 		'  make shell    Open a shell in the PHP container.' \
 		'  make ps       Show dev container status.' \
-		'  make pin-images  Print image digests for an explicit version update.'
+		'  make pin-images  Print image digests for an explicit version update.' \
+		'  make install  Install Composer dependencies from the lock file.' \
+		'  make lint     Check PHP syntax.' \
+		'  make cs-check Check PHP code style without changing files.' \
+		'  make cs-fix   Fix PHP code style.' \
+		'  make analyse Run PHPStan at level 8.' \
+		'  make test     Run all test suites with an isolated MySQL database.' \
+		'  make test-unit         Run unit tests without starting MySQL.' \
+		'  make test-integration  Run integration tests.' \
+		'  make test-functional   Run functional tests.' \
+		'  make check    Validate Composer, syntax, style, types and tests.'
 
 env: .env.example
 	@if [ -e .env ] || [ -L .env ]; then \
@@ -38,6 +52,7 @@ env: .env.example
 	fi
 
 config build up down restart logs shell ps: env
+install lint cs-check cs-fix analyse test test-unit test-integration test-functional check: env
 
 config:
 	$(COMPOSE) config --quiet
@@ -49,7 +64,7 @@ up:
 	$(COMPOSE) up --detach --wait --wait-timeout 120
 
 down:
-	$(COMPOSE) down
+	$(COMPOSE) --profile test down
 
 restart:
 	$(COMPOSE) restart
@@ -62,6 +77,36 @@ shell:
 
 ps:
 	$(COMPOSE) ps
+
+install:
+	$(PHP_RUN) composer install --no-interaction --prefer-dist
+
+lint:
+	$(PHP_RUN) composer lint
+
+cs-check:
+	$(PHP_RUN) composer cs-check
+
+cs-fix:
+	$(PHP_RUN) composer cs-fix
+
+analyse:
+	$(PHP_RUN) composer analyse
+
+test:
+	$(TEST_RUN) composer test
+
+test-unit:
+	$(COMPOSE) --profile test run --rm --no-deps -T php-test composer test:unit
+
+test-integration:
+	$(TEST_RUN) composer test:integration
+
+test-functional:
+	$(TEST_RUN) composer test:functional
+
+check:
+	$(TEST_RUN) composer check
 
 pin-images:
 	@set -eu; \

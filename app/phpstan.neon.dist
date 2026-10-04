@@ -1,0 +1,11 @@
+parameters:
+    level: 8
+    tmpDir: var/cache/phpstan
+    paths:
+        - src
+        - config
+        - public
+        - bin
+        - db
+        - tests
+        - .php-cs-fixer.dist.php

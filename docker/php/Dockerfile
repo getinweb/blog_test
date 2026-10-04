@@ -19,6 +19,15 @@ FROM base AS dev
 ARG APP_UID=1000
 ARG APP_GID=1000
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=composer:2.10.3@sha256:af98f42dfff7c68ba8d53c2164fd9fde1087b7d449514baa38c418b1f6bc4bac /usr/bin/composer /usr/local/bin/composer
+
+ENV COMPOSER_HOME=/tmp/composer \
+    COMPOSER_CACHE_DIR=/var/www/app/var/cache/composer
+
 RUN groupmod --gid "$APP_GID" www-data \
     && usermod --uid "$APP_UID" --gid "$APP_GID" www-data \
     && chown www-data:www-data /var/www/app \

@@ -1,0 +1,49 @@
+{
+  "name": "blog-test/app",
+  "description": "A PHP blog with categories and articles.",
+  "type": "project",
+  "license": "proprietary",
+  "require": {
+    "php": "^8.5",
+    "ext-pdo": "*",
+    "ext-pdo_mysql": "*",
+    "smarty/smarty": "^5.8"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3.95",
+    "phpstan/phpstan": "^2.2",
+    "phpunit/phpunit": "^13.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "allow-plugins": false,
+    "preferred-install": "dist",
+    "sort-packages": true
+  },
+  "scripts": {
+    "lint": "find src config public bin db tests .php-cs-fixer.dist.php -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l",
+    "cs-check": "@php vendor/bin/php-cs-fixer fix --dry-run --diff",
+    "cs-fix": "@php vendor/bin/php-cs-fixer fix",
+    "analyse": "@php vendor/bin/phpstan analyse --memory-limit=512M --no-progress",
+    "test": "@php vendor/bin/phpunit",
+    "test:unit": "@test --testsuite Unit",
+    "test:integration": "@test --testsuite Integration",
+    "test:functional": "@test --testsuite Functional",
+    "check": [
+      "@composer validate --strict",
+      "@lint",
+      "@cs-check",
+      "@analyse",
+      "@test"
+    ]
+  }
+}
