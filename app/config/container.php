@@ -7,6 +7,7 @@ use App\Config\ConfigLoader;
 use App\Config\DatabaseConfig;
 use App\Container\Container;
 use App\Container\ContainerInterface;
+use App\Controller\CategoryController;
 use App\Controller\HomeController;
 use App\Database\BlogSeeder;
 use App\Database\ConnectionFactoryInterface;
@@ -75,8 +76,17 @@ return static function (array $environment): ContainerInterface {
             $container->get(CategoryRepositoryInterface::class),
             $container->get(ArticleRepositoryInterface::class),
         ),
+        CategoryController::class => static fn (ContainerInterface $container): CategoryController => new CategoryController(
+            $container->get(TemplateRendererInterface::class),
+            $container->get(CategoryRepositoryInterface::class),
+            $container->get(ArticleRepositoryInterface::class),
+            $container->get(AppConfig::class)->articlesPerPage,
+        ),
         Router::class => static fn (ContainerInterface $container): Router => new Router(
-            ['/' => $container->get(HomeController::class)],
+            [
+                '/' => $container->get(HomeController::class),
+                '/category' => $container->get(CategoryController::class),
+            ],
             $container->get(TemplateRendererInterface::class),
         ),
         RequestHandlerInterface::class => static fn (ContainerInterface $container): HttpKernel => new HttpKernel(

@@ -1,5 +1,7 @@
 @use 'common/reset';
 @use 'common/base';
+@use 'common/pagination';
 @use 'layout/page';
 @use 'categories/section';
+@use 'categories/page' as category;
 @use 'articles/card';
