@@ -8,6 +8,8 @@ use App\Config\AppConfig;
 use App\Config\ConfigurationException;
 use App\Config\DatabaseConfig;
 use App\Container\ContainerInterface;
+use App\Repository\ArticleRepositoryInterface;
+use App\Repository\CategoryRepositoryInterface;
 use Closure;
 use PHPUnit\Framework\TestCase;
 
@@ -29,6 +31,16 @@ final class ApplicationContainerTest extends TestCase
         $this->expectExceptionMessageIsOrContains('DB_PASSWORD');
 
         ($this->factory())([]);
+    }
+
+    public function testRepositoriesAreRegisteredWithoutOpeningADatabaseConnection(): void
+    {
+        $container = ($this->factory())([
+            'APP_ENV' => 'dev', 'DB_HOST' => 'unused.invalid', 'DB_PASSWORD' => 'secret',
+        ]);
+
+        self::assertTrue($container->has(CategoryRepositoryInterface::class));
+        self::assertTrue($container->has(ArticleRepositoryInterface::class));
     }
 
     /** @return Closure(array<string, string>): ContainerInterface */

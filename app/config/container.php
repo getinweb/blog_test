@@ -15,6 +15,10 @@ use App\Database\PdoConnectionFactory;
 use App\Http\HttpKernel;
 use App\Http\RequestHandlerInterface;
 use App\Http\Router;
+use App\Repository\ArticleRepositoryInterface;
+use App\Repository\CategoryRepositoryInterface;
+use App\Repository\PdoArticleRepository;
+use App\Repository\PdoCategoryRepository;
 use App\View\SmartyRenderer;
 use App\View\TemplateRendererInterface;
 use Smarty\Smarty;
@@ -32,6 +36,10 @@ return static function (array $environment): ContainerInterface {
             $container->get(ConnectionFactoryInterface::class)->create($container->get(DatabaseConfig::class)),
         MigrationRunnerInterface::class => static fn (ContainerInterface $container): MigrationRunner =>
             new MigrationRunner($container->get(PDO::class), dirname(__DIR__) . '/db/migrations'),
+        CategoryRepositoryInterface::class => static fn (ContainerInterface $container): PdoCategoryRepository =>
+            new PdoCategoryRepository($container->get(PDO::class)),
+        ArticleRepositoryInterface::class => static fn (ContainerInterface $container): PdoArticleRepository =>
+            new PdoArticleRepository($container->get(PDO::class)),
         Smarty::class => static function (ContainerInterface $container): Smarty {
             $config = $container->get(AppConfig::class);
             $cacheDirectory = dirname(__DIR__) . '/var/cache/smarty/' . $config->environment;
