@@ -8,6 +8,10 @@ use App\Config\DatabaseConfig;
 use App\Container\Container;
 use App\Container\ContainerInterface;
 use App\Controller\HomeController;
+use App\Database\ConnectionFactoryInterface;
+use App\Database\MigrationRunner;
+use App\Database\MigrationRunnerInterface;
+use App\Database\PdoConnectionFactory;
 use App\Http\HttpKernel;
 use App\Http\RequestHandlerInterface;
 use App\Http\Router;
@@ -23,6 +27,11 @@ return static function (array $environment): ContainerInterface {
         AppConfig::class => static fn (): AppConfig => $config,
         DatabaseConfig::class => static fn (ContainerInterface $container): DatabaseConfig =>
             $container->get(AppConfig::class)->database,
+        ConnectionFactoryInterface::class => static fn (): PdoConnectionFactory => new PdoConnectionFactory(),
+        PDO::class => static fn (ContainerInterface $container): PDO =>
+            $container->get(ConnectionFactoryInterface::class)->create($container->get(DatabaseConfig::class)),
+        MigrationRunnerInterface::class => static fn (ContainerInterface $container): MigrationRunner =>
+            new MigrationRunner($container->get(PDO::class), dirname(__DIR__) . '/db/migrations'),
         Smarty::class => static function (ContainerInterface $container): Smarty {
             $config = $container->get(AppConfig::class);
             $cacheDirectory = dirname(__DIR__) . '/var/cache/smarty/' . $config->environment;
