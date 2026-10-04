@@ -5,6 +5,7 @@
 .agents
 .codex
 .claude
+.playwright-mcp
 .aws
 **/.DS_Store
 

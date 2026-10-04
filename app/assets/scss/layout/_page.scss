@@ -1,0 +1,61 @@
+@use '../common/tokens' as t;
+
+.page-container {
+  width: min(100% - 3rem, t.$content-width);
+  margin-inline: auto;
+}
+
+.site-header {
+  padding-block: 1.25rem;
+  border-bottom: 1px solid t.$line;
+
+  &__brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+}
+
+main.page-container {
+  padding-block: 3rem 5rem;
+}
+
+.page-heading {
+  margin-bottom: 3rem;
+
+  p {
+    margin-top: 0.75rem;
+    color: t.$muted;
+    font-size: 1.125rem;
+  }
+}
+
+.skip-link {
+  position: absolute;
+  z-index: 1;
+  top: 0.5rem;
+  left: 1.5rem;
+  padding: 0.75rem 1rem;
+  transform: translateY(-200%);
+  border-radius: 0.375rem;
+  background: t.$accent;
+  color: t.$background;
+
+  &:focus {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 40rem) {
+  .page-container {
+    width: calc(100% - 2rem);
+  }
+
+  main.page-container {
+    padding-block: 2rem 3rem;
+  }
+
+  .page-heading {
+    margin-bottom: 2rem;
+  }
+}

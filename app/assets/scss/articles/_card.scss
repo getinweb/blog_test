@@ -1,0 +1,67 @@
+@use '../common/tokens' as t;
+
+.article-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2rem;
+}
+
+.article-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  &__link {
+    color: t.$text;
+    text-decoration: none;
+
+    &:hover .article-card__title {
+      color: t.$accent;
+      text-decoration: underline;
+      text-underline-offset: 0.2em;
+    }
+  }
+
+  &__image {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    background: t.$surface;
+  }
+
+  &__title {
+    margin-top: 1rem;
+    font-size: 1.25rem;
+    line-height: 1.4;
+  }
+
+  &__description {
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    color: t.$muted;
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    margin-top: auto;
+    padding-top: 0.5rem;
+    color: t.$muted;
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (max-width: 60rem) {
+  .article-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 40rem) {
+  .article-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

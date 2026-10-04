@@ -70,8 +70,11 @@ return static function (array $environment): ContainerInterface {
         },
         TemplateRendererInterface::class => static fn (ContainerInterface $container): SmartyRenderer =>
             new SmartyRenderer($container->get(Smarty::class)),
-        HomeController::class => static fn (ContainerInterface $container): HomeController =>
-            new HomeController($container->get(TemplateRendererInterface::class)),
+        HomeController::class => static fn (ContainerInterface $container): HomeController => new HomeController(
+            $container->get(TemplateRendererInterface::class),
+            $container->get(CategoryRepositoryInterface::class),
+            $container->get(ArticleRepositoryInterface::class),
+        ),
         Router::class => static fn (ContainerInterface $container): Router => new Router(
             ['/' => $container->get(HomeController::class)],
             $container->get(TemplateRendererInterface::class),
