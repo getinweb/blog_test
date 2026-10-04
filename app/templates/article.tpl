@@ -24,4 +24,15 @@
     <div class="article-detail__text">{$article->text}</div>
     <footer class="article-detail__footer"><a href="/">Все статьи на главной</a></footer>
   </article>
+
+  {if $relatedArticles !== []}
+    <section class="article-related" id="related-articles" aria-labelledby="related-articles-title">
+      <h2 id="related-articles-title">Похожие статьи</h2>
+      <div class="article-grid">
+        {foreach $relatedArticles as $relatedArticle}
+          {include file='articles/card.tpl' article=$relatedArticle}
+        {/foreach}
+      </div>
+    </section>
+  {/if}
 {/block}

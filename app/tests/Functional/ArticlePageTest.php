@@ -120,6 +120,71 @@ final class ArticlePageTest extends TestCase
         self::assertSame([], glob($this->sessionDirectory . '/*'));
     }
 
+    public function testRelatedBlockShowsOnlyAvailableArticlesAndDoesNotCountThemUntilOpened(): void
+    {
+        $response = $this->application->handle(new Request('GET', '/article', ['id' => '1']));
+        self::assertSame(200, $response->status);
+        $xpath = $this->xpath($response);
+        self::assertSame('Похожие статьи', $xpath->evaluate('string(//h:section[@id="related-articles"]/h:h2)'));
+        self::assertSame(1.0, $xpath->evaluate('count(//h:section[@id="related-articles"]//h:article)'));
+        self::assertSame('/article?id=2', $xpath->evaluate('string(//h:section[@id="related-articles"]//h:article/h:a/@href)'));
+        self::assertSame('Без описания', $xpath->evaluate('string(//h:section[@id="related-articles"]//h:h3)'));
+        self::assertSame(0, $this->views(2));
+
+        $opened = $this->application->handle(new Request('GET', '/article', ['id' => '2']));
+        self::assertSame(200, $opened->status);
+        self::assertSame('Без описания', $this->xpath($opened)->evaluate('string(//h:h1)'));
+        self::assertSame(1, $this->views(2));
+        self::assertSame(6, $this->views(1));
+    }
+
+    public function testRelatedBlockLimitsToThreeDistinctArticlesRankedBySharedCategoriesDateAndId(): void
+    {
+        $this->connection->exec("INSERT INTO categories (id, name, description) VALUES (3, 'Отдельная тема', '')");
+        $statement = $this->connection->prepare('INSERT INTO articles
+            (id, image_path, title, description, body, published_at, views) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        self::assertInstanceOf(PDOStatement::class, $statement);
+
+        foreach ([
+            [3, '2026-09-03 12:00:00'], [4, '2026-09-03 12:00:00'], [5, '2026-09-01 12:00:00'],
+            [6, '2026-09-04 12:00:00'], [7, '2026-09-05 12:00:00'],
+        ] as [$id, $date]) {
+            $statement->execute([
+                $id, 'images/test.png', 'Похожая <b>статья</b> ' . $id, 'Описание <script>alert(3)</script>', 'Текст', $date, 10,
+            ]);
+        }
+
+        $this->connection->exec('INSERT INTO article_category (article_id, category_id) VALUES
+            (3, 1), (3, 2), (4, 1), (4, 2), (5, 1), (5, 2), (6, 2), (7, 3)');
+        $response = $this->application->handle(new Request('GET', '/article', ['id' => '1']));
+        self::assertSame(200, $response->status);
+        $xpath = $this->xpath($response);
+        $links = $xpath->query('//h:section[@id="related-articles"]//h:article/h:a/@href');
+        self::assertNotFalse($links);
+        self::assertSame(['/article?id=4', '/article?id=3', '/article?id=5'], array_map(
+            static fn ($node): string => (string) $node->textContent,
+            iterator_to_array($links, false),
+        ));
+        self::assertSame('PHP & <b>код</b>', $xpath->evaluate('string(//h:h1)'));
+        self::assertSame('Похожая <b>статья</b> 4', $xpath->evaluate('string((//h:section[@id="related-articles"]//h:h3)[1])'));
+        self::assertSame(0.0, $xpath->evaluate('count(//h:script | //h:b)'));
+        self::assertStringContainsString('Описание &lt;script&gt;alert(3)&lt;/script&gt;', $response->body);
+
+        foreach ([3, 4, 5, 6, 7] as $id) {
+            self::assertSame(10, $this->views($id));
+        }
+    }
+
+    public function testArticleWithoutSharedCategoriesHasNoRelatedBlock(): void
+    {
+        $this->connection->exec("INSERT INTO categories (id, name, description) VALUES (3, 'Отдельная тема', '')");
+        $this->connection->exec('UPDATE article_category SET category_id = 3 WHERE article_id = 2');
+        $response = $this->application->handle(new Request('GET', '/article', ['id' => '1']));
+        self::assertSame(200, $response->status);
+        self::assertSame(0.0, $this->xpath($response)->evaluate('count(//h:section[@id="related-articles"])'));
+        self::assertStringNotContainsString('Похожие статьи', $response->body);
+    }
+
     /** @param array<string, mixed> $query */
     #[DataProvider('invalidRequests')]
     public function testInvalidRequestsDoNotCountViewsOrStartSession(array $query, int $status): void

@@ -43,12 +43,14 @@ final readonly class ArticleController implements RequestHandlerInterface
             ]), 404);
         }
 
+        $relatedArticles = $this->articles->findRelated($article->id, 3);
         $counted = $request->method === 'GET' && $this->views->record($article->id);
 
         return new Response($this->renderer->render('article.tpl', [
             'title' => $article->title,
             'article' => $article,
             'views' => $article->views + ($counted ? 1 : 0),
+            'relatedArticles' => $relatedArticles,
         ]), 200, ['Cache-Control' => 'private, no-store']);
     }
 }

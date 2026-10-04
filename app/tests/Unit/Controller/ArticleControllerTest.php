@@ -21,13 +21,15 @@ final class ArticleControllerTest extends TestCase
     public function testGetRendersTheArticleWithTheCurrentVisitIncluded(bool $counted, int $expectedViews): void
     {
         $article = $this->article();
+        $related = [$this->article(8)];
         $articles = $this->createMock(ArticleRepositoryInterface::class);
         $articles->expects($this->once())->method('findById')->with(7)->willReturn($article);
+        $articles->expects($this->once())->method('findRelated')->with(7, 3)->willReturn($related);
         $views = $this->createMock(ArticleViewCounterInterface::class);
         $views->expects($this->once())->method('record')->with(7)->willReturn($counted);
         $renderer = $this->createMock(TemplateRendererInterface::class);
         $renderer->expects($this->once())->method('render')->with('article.tpl', [
-            'title' => $article->title, 'article' => $article, 'views' => $expectedViews,
+            'title' => $article->title, 'article' => $article, 'views' => $expectedViews, 'relatedArticles' => $related,
         ])->willReturn('Article page');
 
         $response = (new ArticleController($renderer, $articles, $views))->handle(new Request('GET', '/article', ['id' => '7']));
@@ -46,7 +48,7 @@ final class ArticleControllerTest extends TestCase
         $views->expects($this->never())->method('record');
         $renderer = $this->createMock(TemplateRendererInterface::class);
         $renderer->expects($this->once())->method('render')->with('article.tpl', [
-            'title' => $article->title, 'article' => $article, 'views' => 5,
+            'title' => $article->title, 'article' => $article, 'views' => 5, 'relatedArticles' => [],
         ])->willReturn('Article page');
 
         self::assertSame(200, (new ArticleController($renderer, $articles, $views))->handle(
@@ -60,6 +62,7 @@ final class ArticleControllerTest extends TestCase
     {
         $articles = $this->createMock(ArticleRepositoryInterface::class);
         $articles->expects($this->never())->method('findById');
+        $articles->expects($this->never())->method('findRelated');
         $views = $this->createMock(ArticleViewCounterInterface::class);
         $views->expects($this->never())->method('record');
         $renderer = $this->createMock(TemplateRendererInterface::class);
@@ -73,8 +76,9 @@ final class ArticleControllerTest extends TestCase
 
     public function testMissingArticleReturnsNotFoundWithoutRecordingAView(): void
     {
-        $articles = $this->createStub(ArticleRepositoryInterface::class);
-        $articles->method('findById')->willReturn(null);
+        $articles = $this->createMock(ArticleRepositoryInterface::class);
+        $articles->expects($this->once())->method('findById')->with(999)->willReturn(null);
+        $articles->expects($this->never())->method('findRelated');
         $views = $this->createMock(ArticleViewCounterInterface::class);
         $views->expects($this->never())->method('record');
         $renderer = $this->createMock(TemplateRendererInterface::class);
@@ -107,8 +111,8 @@ final class ArticleControllerTest extends TestCase
         yield 'newline' => [['id' => "7\n"]];
     }
 
-    private function article(): Article
+    private function article(int $id = 7): Article
     {
-        return new Article(7, 'images/a.png', 'Заголовок', 'Описание', 'Текст', new DateTimeImmutable(), 5, [new Category(1, 'PHP', '')]);
+        return new Article($id, 'images/a.png', 'Заголовок', 'Описание', 'Текст', new DateTimeImmutable(), 5, [new Category(1, 'PHP', '')]);
     }
 }

@@ -1,0 +1,11 @@
+@use '../common/tokens' as t;
+
+.article-related {
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid t.$line;
+
+  h2 {
+    margin-bottom: 1.5rem;
+  }
+}
