@@ -17,7 +17,7 @@ PINNED_IMAGES ?= \
 	composer:2.10.3 \
 	alpine:3.24.2
 
-.PHONY: help env config build up down restart logs shell ps pin-images
+.PHONY: help env doctor config build up down restart logs shell ps pin-images
 .PHONY: install lint cs-check cs-fix analyse test test-unit test-integration test-functional check
 .PHONY: css-dev css-watch css-build css-check
 .PHONY: app-config-check
@@ -29,6 +29,7 @@ help:
 		'Available commands:' \
 		'  make help     Show available commands.' \
 		'  make env      Create .env without overwriting an existing file.' \
+		'  make doctor   Check Docker/Compose versions and daemon access.' \
 		'  make config   Validate the dev Compose configuration.' \
 		'  make app-config-check  Validate application settings without connecting to MySQL.' \
 		'  make migrate         Apply pending migrations to the dev database.' \
@@ -73,6 +74,10 @@ css-dev css-watch css-build css-check: env
 app-config-check: env
 migrate migrate-status migrate-test: env
 seed seed-test: env
+build up: doctor
+
+doctor:
+	@sh docker/check-requirements.sh
 
 config:
 	$(COMPOSE) config --quiet

@@ -55,7 +55,7 @@ app/
   templates/       Страницы и общие карточки
   tests/           Unit, Integration, Functional
   var/             Кеши, сессии, изображения, результаты сборки
-docker/            Образы и настройки PHP, nginx, Sass
+docker/            Образы, настройки PHP/nginx/Sass и проверка Docker
 compose.yaml       Общие определения сервисов
 compose.dev.yaml   Dev-окружение и тестовые сервисы
 compose.prod.yaml  Задел для production
@@ -68,9 +68,21 @@ Makefile           Команды разработки
 
 ## Работа с проектом
 
-### Запуск
+### Требования к окружению
 
-Требуются установленные Docker с Compose v2, GNU Make. PHP, Composer, MySQL и Sass работают в контейнерах; Node.js не требуется. Окружение разработки Linux.
+Linux, GNU Make и следующие минимальные версии для проекта:
+
+| Компонент | Версия / требование |
+| --- | --- |
+| Docker Engine и CLI | **25.0.0+**, запущенный daemon с доступом для текущего пользователя |
+| Docker Compose | **2.24.1+**, плагин с командой `docker compose`; старый `docker-compose` v1 не поддерживается |
+| Сборщик | BuildKit; не отключать через `DOCKER_BUILDKIT=0` |
+
+Эта базовая связка соответствует [Docker 25.0](https://docs.docker.com/engine/release-notes/25.0/#2500) и покрывает `name` в Compose, `up --wait --wait-timeout` и `ADD --checksum` в Dockerfile Sass. Проверено на Docker Engine/CLI **29.1.3** и Compose **2.40.3**. PHP, Composer, MySQL и Sass работают в контейнерах; Node.js не требуется.
+
+`make doctor` проверяет версии и доступ к Docker; также запускается перед `make build` и `make up`. При ошибках о неподдерживаемых `name`, `--wait-timeout` или `ADD --checksum` проверьте `docker version` и `docker compose version`, обновите Docker и [плагин Compose](https://docs.docker.com/compose/install/linux/). Поле `version:` в YAML совместимость не исправляет: оно [не выбирает версию схемы Compose](https://docs.docker.com/reference/compose-file/version-and-name/).
+
+### Запуск
 
 Из корня проекта:
 
@@ -95,6 +107,7 @@ Compose передаёт настройки в процесс PHP. Приори�
 
 | Команда | Назначение |
 | --- | --- |
+| `make doctor` | Проверить версии Docker/Compose и доступ к daemon |
 | `make up` / `make down` | Запустить / остановить окружение; dev-БД сохраняется |
 | `make check` | Настройки, SCSS, Composer, PHP-синтаксис, стиль, PHPStan и все тесты |
 | `make cs-fix` | Исправить стиль PHP |
